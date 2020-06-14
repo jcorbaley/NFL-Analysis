@@ -1,0 +1,73 @@
+---
+title: "Final Project_Corbaley, Jason"
+author: "Corbaley, Jason"
+date: "10/31/2019"
+output: html_document
+---
+
+# Cleaning the Data
+```{r}
+library(dplyr)
+
+nfl_scores <- read.csv('spreadspoke_scores.csv')
+
+#New column created.
+
+nfl2_scores <- nfl_scores%>%
+  mutate(combined_score = (score_home + 
+                             score_away),
+         
+         was_it_over = ifelse(over_under_line < 
+                                combined_score, 1, 0))
+
+ #Columns and NA values removed.
+nfl3_scores <- na.omit(nfl2_scores)
+
+nfl3_scores$weather_detail <- NULL
+nfl3_scores$game_id <- NULL
+nfl3_scores$stadium <- NULL
+nfl3_scores$team_favorite_id <- NULL
+nfl3_scores$stadium_neutral <- NULL
+nfl3_scores$weather_humidity <- NULL
+nfl3_scores$spread_favorite <- NULL
+
+str(nfl3_scores)
+
+```
+# Summary Statistics
+```{r}
+summary(nfl3_scores['over_under_line'])
+
+summary(nfl3_scores['combined_score'])
+
+summary(nfl3_scores['was_it_over'])
+
+
+
+```
+# Histograms
+```{r}
+library(ggplot2)
+
+ou_pre_hist <- ggplot(nfl3_scores, aes(over_under_line)) + geom_histogram(bins = 50, fill = 'black') + labs(x = 'Over/Under') + ggtitle('Over/Under Predicted')
+
+ou_pre_hist
+
+ou_actual_hist <- ggplot(nfl3_scores, aes(combined_score)) + geom_histogram(bins = 50, fill = 'blue') + labs(x = 'Over/Under') + ggtitle('Over/Under Actual')
+
+ou_actual_hist
+
+```
+```{r} 
+linear_reg_pre <- lm(over_under_line ~ weather_wind_mph, nfl3_scores)
+
+summary(linear_reg_pre)
+
+linear_reg_actual <- lm(combined_score ~ weather_wind_mph, nfl3_scores)
+
+summary(linear_reg_actual)
+
+logistic_reg <- glm(was_it_over ~ combined_score + weather_wind_mph + weather_temperature, data = nfl3_scores, family = binomial())
+
+summary(logistic_reg)
+```
